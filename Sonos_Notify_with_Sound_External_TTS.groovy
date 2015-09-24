@@ -423,8 +423,8 @@ private loadText() {
 
 private textToSpeechT(message){
 	if (message) {
-	    [uri: "http://www.translate.google.com/translate_tts?tl=en&client=t&q=" + URLEncoder.encode(message, "UTF-8") +"&sf=//s3.amazonaws.com/smartapp-&", duration: "${5 + Math.max(Math.round(message.length()/12),2)}"]
+	    [uri: "http://www.translate.google.com/translate_tts?tl=en&client=t&q=" + URLEncoder.encode(message, "UTF-8").replaceAll(/\+/,'%20') +"&sf=//s3.amazonaws.com/smartapp-&", duration: "${5 + Math.max(Math.round(message.length()/12),2)}"]
     }else{
-    	[uri: "http://www.translate.google.com/translate_tts?tl=en&client=t&q=" + URLEncoder.encode("You selected the Text to Speach Function but did not enter a Message", "UTF-8") +"&sf=//s3.amazonaws.com/smartapp-&", duration: "10"]
+    	[uri: "http://www.translate.google.com/translate_tts?tl=en&client=t&q=" + URLEncoder.encode("You selected the Text to Speach Function but did not enter a Message", "UTF-8").replaceAll(/\+/,'%20') +"&sf=//s3.amazonaws.com/smartapp-&", duration: "10"]
     }
 }
