@@ -89,7 +89,7 @@ def mainPage() {
 				"Someone is arriving",
 				"Piano",
 				"Lightsaber"]
-			input "message","text",title:"Play this message", required:false, multiple: false
+			input "message","text",title:"Play this message?", required:actionType == "Custom Message"? true:flase, multiple:false,submitOnChange:true, saved:saveSelectedMessage()
 		}
 		section {
 			input "sonos", "capability.musicPlayer", title: "On this Sonos player", required: true
@@ -411,20 +411,30 @@ private loadText() {
 			state.sound = [uri: "http://s3.amazonaws.com/smartapp-media/sonos/lightsaber.mp3", duration: "10"]
 			break;
 		default:
-			if (message) {
-                state.sound = textToSpeechT(message instanceof List ? message[0] : message) // not sure why this is (sometimes) needed)
-			}
-			else {
-				state.sound = textToSpeechT("You selected the custom message option but did not enter a message in the $app.label Smart App")
-			}
+			state.sound =  state.soundMessage
 			break;
 	}
 }
 
 private textToSpeechT(message){
 	if (message) {
-	    [uri: "http://www.translate.google.com/translate_tts?tl=en&client=t&q=" + URLEncoder.encode(message, "UTF-8").replaceAll(/\+/,'%20') +"&sf=//s3.amazonaws.com/smartapp-&", duration: "${5 + Math.max(Math.round(message.length()/12),2)}"]
+	    [uri: "x-rincon-mp3radio://www.translate.google.com/translate_tts?tl=en&client=t&q=" + URLEncoder.encode(message, "UTF-8").replaceAll(/\+/,'%20') +"&sf=//s3.amazonaws.com/smartapp-", duration: "${5 + Math.max(Math.round(message.length()/12),2)}"]
     }else{
-    	[uri: "http://www.translate.google.com/translate_tts?tl=en&client=t&q=" + URLEncoder.encode("You selected the Text to Speach Function but did not enter a Message", "UTF-8").replaceAll(/\+/,'%20') +"&sf=//s3.amazonaws.com/smartapp-&", duration: "10"]
+    	[uri: "x-rincon-mp3radio://www.translate.google.com/translate_tts?tl=en&client=t&q=" + URLEncoder.encode("You selected the Text to Speach Function but did not enter a Message", "UTF-8").replaceAll(/\+/,'%20') +"&sf=//s3.amazonaws.com/smartapp-", duration: "10"]
     }
+}
+
+private safeTextToSpeech(message) {
+	message = message?:"You selected the Text to Speach Function but did not enter a Message"
+    log.trace "safeTextToSpeech(${message})"
+    try {
+        state.soundMessage = textToSpeech(message)
+    }
+    catch (Throwable t) {
+        log.error t
+        state.soundMessage = textToSpeechT(message)
+    }
+}
+private saveSelectedMessage() {
+	state.soundMessage = safeTextToSpeech(message)
 }
